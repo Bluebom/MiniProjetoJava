@@ -46,7 +46,7 @@ public class ListaDisciplinas {
 		}
 		No<Disciplinas> atual = this.first;
 		while(atual != null) {
-			msg += "    + "+ atual.getC().getNome()+ "\n"; 
+			msg += "    + "+ atual.getC().getNome()+ " Nota:"+atual.getC().getNota()+"\n"; 
 			atual = atual.getProx();	
 		}
 		return msg;

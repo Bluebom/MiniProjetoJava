@@ -1,94 +1,115 @@
 package br.com.projetoLista;
 
+import java.util.Arrays;
+
 import br.com.app.Alunos;
-import br.com.no.No;
 
 public class ListaAlunos{
-	protected No<Alunos> first;
-	protected No<Alunos> last;
-		
-	/**
-	*	Garantimos que a lista será inicializada zerada.
-	*/
+	private Object[] elements;
+	private int posicao;
+	
+
 	public ListaAlunos() {
-		this.first = null;
-		this.last = null;
+		this.elements = new Object[60];
+		this.posicao = 0;
+	}
+	
+	public void inserir(Alunos element) 
+	{
+		if(this.posicao >= this.elements.length) {
+			System.out.println("O número máximo de alunos foi alcançado.");
+		}
+		this.elements[this.posicao] = element;
+		this.posicao++;
+	}
+	
+	public int recuperaIndiceByRgm(int rgm) {
+		for(int i = 0; i < this.posicao; i++) {
+			Alunos elem = (Alunos)this.elements[i];
+			if(elem != null && elem.getRGM() == rgm) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public void sortByRgm() {
+		for(int i = this.posicao; i > 1 ; i--) {
+			for(int j = 0; j < i; j++) {
+				Alunos atual = (Alunos)this.elements[j];
+				Alunos prox = (Alunos)this.elements[j+1];
+				
+				if(prox != null && atual.getRGM() > prox.getRGM()) {
+					this.swapValues(j, j+1);
+				}
+			}
+		}
+	}
+	
+	public void swapValues(int indexOne, int indexTwo) {
+		Alunos temp = (Alunos)this.elements[indexOne];
+		this.elements[indexOne] = (Alunos)this.elements[indexTwo];
+		this.elements[indexTwo] = temp;
+	}
+	
+	public String recuperar(int rgm) {
+		int indice = this.recuperaIndiceByRgm(rgm);
+		if(posicao >= tamanho())
+			throw new IllegalArgumentException(String.format("A posição é inválida [%d]", posicao));
+		if(indice == -1)
+			return null;
+		Alunos aluno = (Alunos)this.elements[indice];
+		if(aluno == null) 
+			return null;
+		
+		return "[Nome: "+ aluno.getNome()+"\nRGM: "+ aluno.getRGM()+"\nDisciplinas:{\n"+
+			aluno.getDisciplinas().printList()+"\n}],";
+	}
+	
+	public int tamanho() {
+		return this.elements.length;
 	}
 	
 	public boolean isEmpty() {
-		return this.first == null;
+		return this.posicao == 0;
 	}
 	
-	public void firstInsert(Alunos content) {
-		No<Alunos> novoNo = new No<Alunos>(content);
-		if(this.isEmpty()) {
-			this.last = novoNo;
+	public void remover(int rgm) {
+		int indice = recuperaIndiceByRgm(rgm);
+		if(indice >= this.posicao-1) {
+			throw new IllegalArgumentException(String.format("A posição é inválida [%d]", indice));
 		}
-		novoNo.setProx(this.first);
-		this.first = novoNo;
-		
+		Object[] arrayFinal = Arrays.copyOfRange(this.elements, indice + 1, tamanho());
+		Object[] arrayInicio = Arrays.copyOfRange(this.elements, 0, indice);
+		this.elements = new Object[tamanho() - 1];
+		this.posicao--;
+		System.arraycopy(arrayInicio, 0, this.elements, 0, arrayInicio.length);
+		System.arraycopy(arrayFinal, 0, this.elements, arrayInicio.length, arrayFinal.length);
 	}
 	
-	public void lastInsert(Alunos content) {
-		No<Alunos> novoNo = new No<Alunos>(content);
-		if(this.isEmpty()) {
-			this.first = novoNo;
-		}else {
-			this.last.setProx(novoNo);	
-		}
-		this.last = novoNo;
-	}
-
-	public boolean removeNode(int RGM) {
-		No<Alunos> current = this.first;
-		No<Alunos> previous = null;
-		if(this.isEmpty()) {
-			return false;	
-		}
-		while(current != null && !(current.getC().getRGM() == RGM)) {
-			previous = current;
-			current = current.getProx();
-		}
-		if(current == this.first) {
-			if(this.first == this.last) {
-				this.last = null;
-			}
-			this.first = this.first.getProx();
-		}else {
-			if(current == this.last) {
-				this.last = previous;
-			}
-			previous.setProx(current.getProx());	
-			current = current.getProx();
-		}
-		
-		return true;
-	}
-
-	public String searchNode(int RGM) {
-		No<Alunos> current = this.first;
-		while(current != null && !(current.getC().getRGM() == RGM)) {
-			current = current.getProx();
-		}
-		if(current == null) {
-			return "Aluno de RMG: "+RGM+" não localizado";
-		}
-		String msg = "Nome: "+ current.getC().getNome();
-		msg += "\nDisciplinas:\n"+current.getC().getDisciplinas().printList()+"\n";
-		return msg;
-	}
-
 	public String printList() {
 		String msg = "";
 		if(this.isEmpty()) {
 			return "A lista está vazia!";
 		}
-		No<Alunos> atual = this.first;
-		while(atual != null) {
-			msg += "Nome: "+ atual.getC().getNome();
-			msg += "\nRGM: "+ atual.getC().getRGM();
-			msg += "\nDisciplinas:\n"+atual.getC().getDisciplinas().printList()+"-> ";
-			atual = atual.getProx();	
+		this.sortByRgm();
+		for(int i = 0; i < this.posicao; i++) {
+			Alunos aluno = (Alunos)this.elements[i];
+			msg +=  "[Nome: "+ aluno.getNome()+"\nRGM: "+ aluno.getRGM()+"\nDisciplinas:{\n"+
+			aluno.getDisciplinas().printList()+"\n}],";
+		}
+		return msg;
+	}
+	
+	public String printToTXT() {
+		String msg = "";
+		if(this.isEmpty()) {
+			return "A lista está vazia!";
+		}
+		this.sortByRgm();
+		for(int i = 0; i < this.posicao; i++) {
+			Alunos aluno = (Alunos)this.elements[i];
+			msg +=  "[Nome: "+ aluno.getNome()+" | RGM: "+ aluno.getRGM()+"]\n";
 		}
 		return msg;
 	}
